@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TypeZone by Aamir</title>
     <link rel="stylesheet" href="style.css">
+    
+    <script>
+        window.addEventListener('DOMContentLoaded', (event) => {
+            window.scrollTo(0, 0);
+        });
+    </script>
 </head>
 <body class="theme-light"> 
 
@@ -39,28 +45,28 @@
         
         <main class="typing-area">
             
-            <div class="level-tabs-container">
-                <div class="level-tabs">
-                    <div class="level-tab active" data-level="easy" id="easy-tab">Easy</div>
-                    <div class="level-tab" data-level="medium" id="medium-tab">Medium</div>
-                    <div class="level-tab" data-level="hard" id="hard-tab">Hard</div>
-                    <div class="level-tab" data-level="professional" id="professional-tab">Professional</div>
+            <div id="settings-group-top"> 
+                <div class="level-tabs-container">
+                    <div class="level-tabs">
+                        <div class="level-tab active" data-level="easy" id="easy-tab">Easy</div>
+                        <div class="level-tab" data-level="medium" id="medium-tab">Medium</div>
+                        <div class="level-tab" data-level="hard" id="hard-tab">Hard</div>
+                        <div class="level-tab" data-level="professional" id="professional-tab">Professional</div>
+                    </div>
+                    
+                    <div id="mode-selector-container" class="mode-selector-container">
+                        <button id="strict-mode-btn" class="mode-option active" data-mode="strict">Strict 🔒</button>
+                        <button id="zen-mode-btn" class="mode-option" data-mode="zen">Zen 🧘</button>
+                    </div>
                 </div>
                 
-                <div id="mode-selector-container" class="mode-selector-container">
-                    <button id="strict-mode-btn" class="mode-option active" data-mode="strict">Strict 🔒</button>
-                    <button id="zen-mode-btn" class="mode-option" data-mode="zen">Zen 🧘</button>
+                <div id="paragraph-selector-container" class="settings-group">
+                        <h3>Select Paragraph:</h3>
+                        <select id="paragraph-selector" class="custom-select" disabled>
+                            <option value="" disabled selected>Loading titles...</option>
+                        </select>
                 </div>
-            </div>
-            
-            <div id="paragraph-selector-container" class="settings-group">
-                 <h3>Select Paragraph:</h3>
-                 <select id="paragraph-selector" class="custom-select" disabled>
-                     <option value="" disabled selected>Loading titles...</option>
-                 </select>
-            </div>
-            
-            <div class="metrics-bar">
+            </div> <div class="metrics-bar" id="metrics-bar">
                 <div class="metric"><span id="timer">60</span>s</div>
                 <div class="metric">WPM: <span id="wpm">0</span></div>
                 <div class="metric">Accuracy: <span id="accuracy">100</span>%</div>

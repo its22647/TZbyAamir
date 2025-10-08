@@ -8,7 +8,7 @@ const elements = {
     body: $('body'),
     paragraphSelector: $('#paragraph-selector'),
     textDisplay: $('#text-display'),
-    typingInput: $('#typing-input'),
+    typingInput: $('#typing-input'), // This is the invisible input
     timerSpan: $('#timer'),
     wpmSpan: $('#wpm'),
     accuracySpan: $('#accuracy'),
@@ -17,7 +17,9 @@ const elements = {
     timeSelector: $('#time-selector'),
     helpMessage: $('#help-message'),
     
-    paragraphSelectorContainer: $('#paragraph-selector-container'), 
+    // ELEMENT: Grouping container for all settings 
+    settingsGroupTop: $('#settings-group-top'), 
+    
     startTestBtn: $('#start-test-btn'),
     levelTabs: $all('.level-tab'), 
     
@@ -25,6 +27,9 @@ const elements = {
     strictModeBtn: $('#strict-mode-btn'), 
     zenModeBtn: $('#zen-mode-btn'),
     modeOptions: $all('.mode-option'),
+    
+    // TARGET ELEMENT: Metrics Bar for initial scroll positioning
+    metricsBar: $('#metrics-bar'), 
 
     // MODAL ELEMENTS
     resultsModal: $('#results-modal'),
@@ -52,25 +57,64 @@ let currentState = {
 
 // --- Core Functions ---
 
+/**
+ * FIX 1: Focuses input without causing the browser to scroll
+ * to the element (which is off-screen). This prevents the entire page jump.
+ */
+function focusInput() {
+    // preventScroll: true stops the unwanted page scroll behavior when typing starts
+    elements.typingInput.focus({ preventScroll: true }); 
+}
+
+/**
+ * FIX 2: Scrolls the main page body to the Metrics Bar position
+ * for optimal initial viewing area.
+ */
+function positionPage() {
+    const metricsBar = elements.metricsBar;
+    if (metricsBar) {
+        window.scrollTo({
+            // Scroll to the top of the metrics bar, minus an offset (80px)
+            top: metricsBar.offsetTop - 80, 
+            behavior: 'smooth'
+        });
+    }
+}
+
+/**
+ * FINAL FIX 3 (Optimized): Controls the internal scroll of the text-display area.
+ * Scrolls only when the current character moves to a new line that is at the bottom of the visible area.
+ */
 function autoScroll() {
     const currentSpan = $('.current');
     if (!currentSpan) return;
 
     const display = elements.textDisplay;
-    const currentPos = currentSpan.offsetTop;
-    const displayScrollTop = display.scrollTop;
-    const displayHeight = display.clientHeight;
-
-    const SCROLL_MARGIN = 150; 
-
-    if (currentPos > displayScrollTop + displayHeight - SCROLL_MARGIN) {
-        display.scrollTop += 60; 
-    }
     
-    if (currentPos < displayScrollTop) {
-        display.scrollTop = currentPos - (displayHeight / 3) + 30; 
+    // Get the character's bounding rectangle (accurate position and height)
+    const currentRect = currentSpan.getBoundingClientRect();
+    const displayRect = display.getBoundingClientRect();
+
+    // Calculate the distance of the character's TOP from the TOP of the display box (relative position)
+    const charRelativeTop = currentRect.top - displayRect.top;
+    
+    // The height of the display area
+    const displayHeight = display.clientHeight;
+    
+    // Calculate scroll threshold. We want to scroll only when the cursor is in the last visible line.
+    // Use the character's height (which is the line height) to define the margin.
+    const lineHeight = currentRect.height;
+    
+    // Scroll if the cursor is past the "bottom - 1.5 lines" mark.
+    // This ensures there's always at least one full line visible below the cursor.
+    const SCROLL_THRESHOLD = displayHeight - (lineHeight * 1.5); 
+
+    if (charRelativeTop >= SCROLL_THRESHOLD) {
+        // Scroll down by the height of one line (smooth scroll to next line)
+        display.scrollTop += lineHeight;
     }
 }
+
 
 // Function to load titles into the SELECT dropdown
 function loadParagraphTitles(level) {
@@ -102,6 +146,7 @@ function loadParagraphTitles(level) {
 function selectParagraph(id) {
     const paragraphId = parseInt(id);
 
+    // Allow changing paragraph only if test is not running
     if (currentState.isRunning || !paragraphId) {
         return; 
     }
@@ -120,7 +165,7 @@ function selectParagraph(id) {
 
     currentState.selectedText = paragraph.text;
     elements.textDisplay.innerHTML = '';
-    elements.textDisplay.scrollTop = 0; 
+    elements.textDisplay.scrollTop = 0; // Ensures text starts from the top
 
     paragraph.text.split('').forEach((char, index) => {
         const span = document.createElement('span');
@@ -144,13 +189,15 @@ function selectParagraph(id) {
     elements.wpmSpan.innerText = 0;
     elements.accuracySpan.innerText = 100;
     elements.resultsModal.style.display = 'none';
-    elements.paragraphSelectorContainer.classList.remove('disabled'); 
-    elements.levelTabs.forEach(tab => tab.classList.remove('disabled'));
+    
+    // Settings are ENABLED before the test starts
+    elements.settingsGroupTop.classList.remove('disabled');
 
-    elements.typingInput.focus();
+    focusInput(); 
     elements.startTestBtn.disabled = false;
     
     updateHelpMessage();
+    positionPage(); // Ensure correct position after selection
 }
 
 function updateHelpMessage() {
@@ -169,6 +216,7 @@ function handleInput(event) {
     
     const { value } = elements.typingInput;
 
+    // Start test when the first character is typed
     if (!currentState.isRunning && value.length > 0) {
         startTest();
     }
@@ -176,7 +224,7 @@ function handleInput(event) {
     const isDeleting = event.inputType === 'deleteContentBackward';
     const oldLength = currentState.typedText.length;
 
-    // STRICT MODE CHECK
+    // Strict Mode Check Logic
     if (currentState.currentMode === 'strict' && currentState.hasError && !isDeleting) {
         if (value.length > oldLength) {
             elements.typingInput.value = currentState.typedText;
@@ -184,7 +232,7 @@ function handleInput(event) {
         }
     }
     
-    // ERROR TRACKING FOR METRICS 
+    // Error Tracking (Total Errors)
     if (!isDeleting && value.length > oldLength) {
         const charIndex = oldLength; 
         const expectedChar = currentState.selectedText[charIndex];
@@ -228,7 +276,7 @@ function handleInput(event) {
     }
     currentState.hasError = currentPositionError; 
     
-    autoScroll(); 
+    autoScroll(); // Call updated scroll logic
     updateMetrics(); 
 
     if (currentState.typedText.length === currentState.selectedText.length) {
@@ -245,11 +293,12 @@ function startTest() {
     elements.textDisplay.scrollTop = 0; 
     elements.resultsModal.style.display = 'none'; 
 
-    elements.paragraphSelectorContainer.classList.add('disabled');
-    elements.levelTabs.forEach(tab => tab.classList.add('disabled'));
+    // FIX: Disable settings only when the test starts
+    elements.settingsGroupTop.classList.add('disabled');
     elements.startTestBtn.disabled = true;
 
-    elements.typingInput.focus(); 
+    // Ensure focus is there when test starts
+    focusInput(); 
 
     let timeLeft = currentState.timeLimit;
     elements.timerSpan.innerText = timeLeft;
@@ -273,8 +322,8 @@ function endTest(completed, silent = false) {
     
     updateMetrics(); 
 
-    elements.paragraphSelectorContainer.classList.remove('disabled');
-    elements.levelTabs.forEach(tab => tab.classList.remove('disabled'));
+    // Enable settings when the test ends
+    elements.settingsGroupTop.classList.remove('disabled');
     elements.startTestBtn.disabled = false;
 
     if (silent) return; 
@@ -291,7 +340,6 @@ function endTest(completed, silent = false) {
 }
 
 function resetTest(fullReset = true) {
-    // Basic state reset
     clearInterval(currentState.timerInterval);
     currentState.isRunning = false;
     currentState.typedText = '';
@@ -305,8 +353,9 @@ function resetTest(fullReset = true) {
     elements.accuracySpan.innerText = 100;
     elements.textDisplay.scrollTop = 0; 
     elements.resultsModal.style.display = 'none'; 
-    elements.paragraphSelectorContainer.classList.remove('disabled'); 
-    elements.levelTabs.forEach(tab => tab.classList.remove('disabled'));
+    
+    // Enable settings
+    elements.settingsGroupTop.classList.remove('disabled');
 
     $all('#text-display span').forEach(span => {
         span.classList.remove('correct', 'incorrect', 'current');
@@ -331,14 +380,15 @@ function resetTest(fullReset = true) {
         if (currentState.selectedText) {
              const activeId = elements.paragraphSelector.value;
              if (activeId) {
-                selectParagraph(activeId); 
+                 selectParagraph(activeId); 
              }
              elements.startTestBtn.disabled = false;
         }
     }
     
     updateHelpMessage();
-    elements.typingInput.focus(); 
+    focusInput(); 
+    positionPage(); // Final position setting
 }
 
 function updateMetrics() {
@@ -352,16 +402,16 @@ function updateMetrics() {
     let timeElapsed;
     
     if (currentState.isRunning) {
-         timeElapsed = (Date.now() - currentState.startTime) / 60000;
+           timeElapsed = (Date.now() - currentState.startTime) / 60000;
     } else {
-         const timerValue = parseInt(elements.timerSpan.innerText);
-         timeElapsed = (currentState.timeLimit - timerValue) / 60;
-         
-         if (timeElapsed <= 0 && typedChars === currentState.selectedText.length) {
-              timeElapsed = (Date.now() - currentState.startTime) / 60000;
-         } else if (timeElapsed <= 0) {
-              timeElapsed = currentState.timeLimit / 60;
-         }
+           const timerValue = parseInt(elements.timerSpan.innerText);
+           timeElapsed = (currentState.timeLimit - timerValue) / 60;
+           
+           if (timeElapsed <= 0 && typedChars === currentState.selectedText.length) {
+                timeElapsed = (Date.now() - currentState.startTime) / 60000;
+           } else if (timeElapsed <= 0) {
+                timeElapsed = currentState.timeLimit / 60;
+           }
     }
 
     const wpm = timeElapsed > 0 ? Math.round((correctedChars / 5) / timeElapsed) : 0;
@@ -423,17 +473,14 @@ elements.startTestBtn.addEventListener('click', startTest);
 elements.restartBtn.addEventListener('click', () => resetTest(false)); 
 elements.modalRestartBtn.addEventListener('click', () => resetTest(true));
 
-// Listener for Paragraph Dropdown change
 elements.paragraphSelector.addEventListener('change', (e) => selectParagraph(e.target.value));
 
-// Listeners for Mode Selector
 elements.strictModeBtn.addEventListener('click', () => handleModeChange('strict'));
 elements.zenModeBtn.addEventListener('click', () => handleModeChange('zen'));
 
 elements.modalCloseBtn.addEventListener('click', () => {
     elements.resultsModal.style.display = 'none';
     resetTest(true); 
-    elements.typingInput.focus(); 
 });
 
 elements.themeSelector.addEventListener('change', (e) => changeTheme(e.target.value));
@@ -442,6 +489,9 @@ elements.timeSelector.addEventListener('change', handleTimeChange);
 elements.levelTabs.forEach(tab => {
     tab.addEventListener('click', (e) => handleLevelChange(e.target.dataset.level));
 });
+
+// LISTENER: Re-focus input field whenever the user clicks/taps on the main typing area
+elements.textDisplay.addEventListener('click', focusInput);
 
 
 // --- Initialization ---
@@ -452,4 +502,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadParagraphTitles(initialLevel);
     currentState.timeLimit = parseInt(elements.timeSelector.value);
     resetTest(true); 
+    
+    // Initial scroll to position the main area after everything loads
+    positionPage();
 });
