@@ -6,7 +6,8 @@ const $all = selector => document.querySelectorAll(selector);
 
 const elements = {
     body: $('body'),
-    paragraphList: $('#paragraph-list'),
+    // Updated: Replaced paragraphList with paragraphSelector
+    paragraphSelector: $('#paragraph-selector'),
     textDisplay: $('#text-display'),
     typingInput: $('#typing-input'),
     timerSpan: $('#timer'),
@@ -21,7 +22,7 @@ const elements = {
     startTestBtn: $('#start-test-btn'),
     levelTabs: $all('.level-tab'), 
     
-    // NEW MODE SELECTOR ELEMENTS
+    // Mode Selector Elements
     strictModeBtn: $('#strict-mode-btn'), 
     zenModeBtn: $('#zen-mode-btn'),
     modeOptions: $all('.mode-option'),
@@ -47,7 +48,7 @@ let currentState = {
     isRunning: false,
     currentLevel: 'easy',
     hasError: false,
-    currentMode: 'strict' // Default is strict
+    currentMode: 'strict' 
 };
 
 // --- Core Functions ---
@@ -72,30 +73,39 @@ function autoScroll() {
     }
 }
 
+// Update to load titles into the SELECT dropdown
 function loadParagraphTitles(level) {
     currentState.currentLevel = level;
-    elements.paragraphList.innerHTML = '';
-    
+    elements.paragraphSelector.innerHTML = '';
+    elements.paragraphSelector.disabled = true;
+
     const filteredData = typeof paragraphData !== 'undefined' ? paragraphData.filter(p => p.level === level) : [];
 
-    if (filteredData.length === 0) {
-        elements.paragraphList.innerHTML = '<p style="color:red; text-align:center;">No paragraphs found for this level!</p>';
-        return;
-    }
+    const defaultOption = document.createElement('option');
+    defaultOption.value = "";
+    defaultOption.innerText = filteredData.length > 0 ? `Select a paragraph (${filteredData.length} available)` : `No paragraphs for this level`;
+    defaultOption.disabled = true;
+    defaultOption.selected = true;
+    elements.paragraphSelector.appendChild(defaultOption);
 
-    filteredData.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'paragraph-title';
-        div.innerText = p.title;
-        div.dataset.id = p.id;
-        div.addEventListener('click', () => selectParagraph(p.id));
-        elements.paragraphList.appendChild(div);
-    });
+    if (filteredData.length > 0) {
+        filteredData.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.id;
+            option.innerText = p.title;
+            elements.paragraphSelector.appendChild(option);
+        });
+        elements.paragraphSelector.disabled = false;
+    }
 }
 
+// Function to select paragraph by ID from the dropdown value
 function selectParagraph(id) {
-    if (currentState.isRunning) {
-        console.warn('Cannot select a new paragraph while the test is running.');
+    // Convert ID to integer as it comes as string from select value
+    const paragraphId = parseInt(id);
+
+    if (currentState.isRunning || !paragraphId) {
+        // If test is running or no valid ID is selected, just return
         return; 
     }
     
@@ -108,7 +118,7 @@ function selectParagraph(id) {
     elements.typingInput.value = ''; 
     elements.typingInput.blur(); 
     
-    const paragraph = paragraphData.find(p => p.id === id);
+    const paragraph = paragraphData.find(p => p.id === paragraphId);
     if (!paragraph) return;
 
     currentState.selectedText = paragraph.text;
@@ -131,9 +141,8 @@ function selectParagraph(id) {
         elements.textDisplay.classList.remove('zen-mode');
     }
 
-
-    $all('.paragraph-title').forEach(el => el.classList.remove('active'));
-    $(`[data-id="${id}"]`).classList.add('active');
+    // Ensure the dropdown shows the active selection
+    elements.paragraphSelector.value = paragraphId;
 
     elements.timerSpan.innerText = currentState.timeLimit;
     elements.wpmSpan.innerText = 0;
@@ -145,7 +154,6 @@ function selectParagraph(id) {
     elements.typingInput.focus();
     elements.startTestBtn.disabled = false;
     
-    // Update help message based on mode
     updateHelpMessage();
 }
 
@@ -245,7 +253,6 @@ function startTest() {
     elements.levelTabs.forEach(tab => tab.classList.add('disabled'));
     elements.startTestBtn.disabled = true;
 
-    // FIX: Focus on Input
     elements.typingInput.focus(); 
 
     let timeLeft = currentState.timeLimit;
@@ -319,17 +326,17 @@ function resetTest(fullReset = true) {
     if (fullReset) {
         currentState.selectedText = '';
         elements.textDisplay.innerHTML = '<span class="placeholder">Select a Level and then choose a Title to begin!</span>';
-        $all('.paragraph-title').forEach(el => el.classList.remove('active'));
+        elements.paragraphSelector.value = ''; // Reset dropdown
         elements.startTestBtn.disabled = true; 
         
         loadParagraphTitles(currentState.currentLevel);
 
     } else {
         if (currentState.selectedText) {
-             const activeId = $all('.paragraph-title.active')[0]?.dataset.id;
+             const activeId = elements.paragraphSelector.value;
              if (activeId) {
                 // Quickly re-select paragraph to re-render spans
-                selectParagraph(parseInt(activeId)); 
+                selectParagraph(activeId); 
              }
              elements.startTestBtn.disabled = false;
         }
@@ -345,6 +352,7 @@ function updateMetrics() {
     if (typedChars === 0 && !currentState.isRunning) return;
 
     const correctedChars = typedChars - currentState.displayErrors;
+    // Total keystrokes is all typed characters (good/bad) + all historical bad characters
     const totalKeystrokes = typedChars + currentState.totalErrors; 
 
     let timeElapsed;
@@ -364,6 +372,7 @@ function updateMetrics() {
 
     const wpm = timeElapsed > 0 ? Math.round((correctedChars / 5) / timeElapsed) : 0;
     
+    // Accuracy: (Correct Characters typed) / (Total Keystrokes)
     const netAccuracy = (totalKeystrokes === 0) 
         ? 100 
         : Math.max(0, Math.round(((typedChars - currentState.displayErrors) / totalKeystrokes) * 100));
@@ -390,13 +399,10 @@ function handleLevelChange(newLevel) {
 
     currentState.currentLevel = newLevel;
     
-    elements.textDisplay.innerHTML = '<span class="placeholder">Select a Title from the current Level to begin!</span>';
-    loadParagraphTitles(newLevel);
-    
+    // Reset to initial state after level change
     resetTest(true); 
 }
 
-// NEW: Handle Mode Change
 function handleModeChange(mode) {
     if (currentState.isRunning || currentState.currentMode === mode) return; 
 
@@ -426,7 +432,10 @@ elements.startTestBtn.addEventListener('click', startTest);
 elements.restartBtn.addEventListener('click', () => resetTest(false)); 
 elements.modalRestartBtn.addEventListener('click', () => resetTest(true));
 
-// NEW LISTENERS for Mode Selector
+// NEW LISTENER for Paragraph Dropdown change
+elements.paragraphSelector.addEventListener('change', (e) => selectParagraph(e.target.value));
+
+// LISTENERS for Mode Selector
 elements.strictModeBtn.addEventListener('click', () => handleModeChange('strict'));
 elements.zenModeBtn.addEventListener('click', () => handleModeChange('zen'));
 

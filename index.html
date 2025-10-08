@@ -22,7 +22,7 @@
                 <select id="theme-selector" class="custom-select">
                     <option value="light">Light</option>
                     <option value="dark">Dark</option>
-                    <option value="bw">Black & White</option>
+                    <option option value="bw">Black & White</option>
                 </select>
             </div>
             
@@ -53,9 +53,11 @@
                 </div>
             </div>
             
-            <div id="paragraph-selector-container" class="paragraph-selector-container">
-                <div id="paragraph-list" class="paragraph-list">
-                    </div>
+            <div id="paragraph-selector-container" class="settings-group">
+                 <h3>Select Paragraph:</h3>
+                 <select id="paragraph-selector" class="custom-select" disabled>
+                     <option value="" disabled selected>Loading titles...</option>
+                 </select>
             </div>
             
             <div class="metrics-bar">
@@ -75,7 +77,7 @@
             <input type="text" id="typing-input" class="typing-input" autofocus> 
 
             <div id="help-message" class="help-message">
-                Strict Mode: Typing stops on the first error. Go for 100% accuracy!
+                Select a Level and a Title to begin!
             </div>
         </main>
     </div>
