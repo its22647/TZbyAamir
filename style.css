@@ -8,6 +8,8 @@
     --secondary-color: #6f42c1; /* Purple for accents/tabs */
     --accent-color: #28a745; /* Green for success/start button */
     --error-color: #dc3545; /* Red for errors/restart button */
+    --zen-color: #ffc107; /* Yellow/Amber for Zen Mode */
+    --mode-bg: #e0e0e0;
     --card-bg-light: #ffffff;
     --card-bg-dark: #2a2a2a;
     --shadow-light: 0 8px 30px rgba(0, 0, 0, 0.08); 
@@ -64,6 +66,16 @@ body {
 .theme-dark .level-tab {
     border-color: #555;
 }
+.theme-dark .mode-selector-container {
+    background-color: #444;
+}
+.theme-dark .mode-option {
+    color: var(--text-dark);
+}
+.theme-dark .mode-option.active {
+    background-color: var(--primary-color);
+    color: white;
+}
 
 /* --- BLACK AND WHITE THEME FIX --- */
 .theme-bw {
@@ -110,6 +122,18 @@ body {
 }
 .theme-bw .result-box p {
     color: #fff !important; 
+}
+.theme-bw .mode-selector-container {
+    background-color: #333;
+    border: 1px solid #fff;
+}
+.theme-bw .mode-option {
+    color: #fff;
+}
+.theme-bw .mode-option.active {
+    background-color: #fff;
+    color: #000;
+    box-shadow: none;
 }
 
 
@@ -180,11 +204,18 @@ h1 {
 }
 
 
-/* --- Level Tabs --- */
-.level-tabs {
+/* --- Level Tabs Container (FLEXBOX) --- */
+.level-tabs-container {
     display: flex;
+    justify-content: space-between;
+    align-items: flex-end; 
     margin-bottom: 20px;
     border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+}
+.level-tabs {
+    display: flex;
+    flex-shrink: 0;
 }
 .level-tab {
     padding: 10px 15px;
@@ -206,6 +237,37 @@ h1 {
     0% { transform: scale(1); }
     50% { transform: scale(1.02); }
     100% { transform: scale(1); }
+}
+
+/* --- NEW PROFESSIONAL MODE SELECTOR STYLING --- */
+.mode-selector-container {
+    display: inline-flex;
+    background-color: var(--mode-bg);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-left: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.mode-option {
+    border: none;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-weight: 600;
+    background-color: transparent;
+    transition: var(--transition-fast);
+    font-size: 0.9em;
+    color: #666;
+}
+
+.mode-option.active {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 2px 8px rgba(0, 123, 255, 0.5);
+    transform: scale(1.05);
+}
+.mode-option:not(.active):hover {
+    background-color: rgba(0, 0, 0, 0.05);
 }
 
 /* --- Paragraph Selector --- */
@@ -260,7 +322,7 @@ h1 {
 }
 
 
-/* --- Metrics Bar and Buttons (FIXED for overflow) --- */
+/* --- Metrics Bar and Buttons --- */
 .metrics-bar {
     display: flex;
     justify-content: space-between;
@@ -273,7 +335,6 @@ h1 {
 .metric {
     font-size: 1.5em;
     font-weight: 600;
-    /* FIX: Added min-width and flex-shrink to prevent text overflow/wrapping */
     min-width: 100px; 
     flex-shrink: 0; 
 }
@@ -349,6 +410,27 @@ h1 {
     padding: 0 2px;
     border-radius: 2px;
 }
+
+/* Zen Mode Styling: Errors are not highlighted */
+.text-display.zen-mode .incorrect {
+    color: inherit; 
+    border-bottom: none;
+    background-color: transparent;
+    padding: 0;
+}
+/* Zen Mode: Correct characters are also not highlighted to keep the text clean */
+.text-display.zen-mode .correct {
+    color: inherit;
+}
+.theme-dark .text-display.zen-mode .incorrect, 
+.theme-dark .text-display.zen-mode .correct {
+    color: var(--text-dark);
+}
+.theme-bw .text-display.zen-mode .incorrect, 
+.theme-bw .text-display.zen-mode .correct {
+    color: #fff;
+}
+
 
 /* Hidden Input and Help Message */
 .typing-input {
@@ -472,7 +554,7 @@ h1 {
     }
     .metric {
         font-size: 1.2em;
-        min-width: unset; /* Remove min-width on small screens to allow wrapping if needed */
+        min-width: unset;
     }
     .action-btn {
         flex-grow: 1;
@@ -487,5 +569,15 @@ h1 {
     }
     .result-box {
         min-width: unset;
+    }
+    .level-tabs-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .level-tabs {
+        margin-bottom: 10px;
+    }
+    .mode-selector-container {
+        margin-left: 0;
     }
 }

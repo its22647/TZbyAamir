@@ -39,11 +39,18 @@
         
         <main class="typing-area">
             
-            <div class="level-tabs">
-                <div class="level-tab active" data-level="easy" id="easy-tab">Easy</div>
-                <div class="level-tab" data-level="medium" id="medium-tab">Medium</div>
-                <div class="level-tab" data-level="hard" id="hard-tab">Hard</div>
-                <div class="level-tab" data-level="professional" id="professional-tab">Professional</div>
+            <div class="level-tabs-container">
+                <div class="level-tabs">
+                    <div class="level-tab active" data-level="easy" id="easy-tab">Easy</div>
+                    <div class="level-tab" data-level="medium" id="medium-tab">Medium</div>
+                    <div class="level-tab" data-level="hard" id="hard-tab">Hard</div>
+                    <div class="level-tab" data-level="professional" id="professional-tab">Professional</div>
+                </div>
+                
+                <div id="mode-selector-container" class="mode-selector-container">
+                    <button id="strict-mode-btn" class="mode-option active" data-mode="strict">Strict 🔒</button>
+                    <button id="zen-mode-btn" class="mode-option" data-mode="zen">Zen 🧘</button>
+                </div>
             </div>
             
             <div id="paragraph-selector-container" class="paragraph-selector-container">
@@ -68,7 +75,7 @@
             <input type="text" id="typing-input" class="typing-input" autofocus> 
 
             <div id="help-message" class="help-message">
-                Select a Level and a Title to begin!
+                Strict Mode: Typing stops on the first error. Go for 100% accuracy!
             </div>
         </main>
     </div>

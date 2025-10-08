@@ -21,6 +21,11 @@ const elements = {
     startTestBtn: $('#start-test-btn'),
     levelTabs: $all('.level-tab'), 
     
+    // NEW MODE SELECTOR ELEMENTS
+    strictModeBtn: $('#strict-mode-btn'), 
+    zenModeBtn: $('#zen-mode-btn'),
+    modeOptions: $all('.mode-option'),
+
     // MODAL ELEMENTS
     resultsModal: $('#results-modal'),
     modalRestartBtn: $('#modal-restart-btn'),
@@ -34,16 +39,15 @@ const elements = {
 let currentState = {
     selectedText: '',
     typedText: '',
-    // 'displayErrors' tracks current WRONG characters for highlighting
     displayErrors: 0,
-    // 'totalErrors' tracks ALL errors, even if corrected (for persistent accuracy)
     totalErrors: 0, 
     startTime: 0,
     timeLimit: 60, 
     timerInterval: null,
     isRunning: false,
     currentLevel: 'easy',
-    hasError: false 
+    hasError: false,
+    currentMode: 'strict' // Default is strict
 };
 
 // --- Core Functions ---
@@ -99,7 +103,7 @@ function selectParagraph(id) {
     currentState.isRunning = false;
     currentState.typedText = '';
     currentState.displayErrors = 0;
-    currentState.totalErrors = 0; // RESET totalErrors
+    currentState.totalErrors = 0;
     currentState.hasError = false; 
     elements.typingInput.value = ''; 
     elements.typingInput.blur(); 
@@ -119,6 +123,14 @@ function selectParagraph(id) {
         }
         elements.textDisplay.appendChild(span);
     });
+    
+    // Apply Mode class
+    if (currentState.currentMode === 'zen') {
+        elements.textDisplay.classList.add('zen-mode');
+    } else {
+        elements.textDisplay.classList.remove('zen-mode');
+    }
+
 
     $all('.paragraph-title').forEach(el => el.classList.remove('active'));
     $(`[data-id="${id}"]`).classList.add('active');
@@ -132,8 +144,20 @@ function selectParagraph(id) {
 
     elements.typingInput.focus();
     elements.startTestBtn.disabled = false;
-    elements.helpMessage.innerText = "Paragraph selected. Click 'Start Test' or begin typing to start!";
+    
+    // Update help message based on mode
+    updateHelpMessage();
+}
+
+function updateHelpMessage() {
     elements.helpMessage.style.display = 'block';
+    if (currentState.selectedText === '') {
+        elements.helpMessage.innerText = "Select a Level and a Title to begin!";
+    } else if (currentState.currentMode === 'strict') {
+        elements.helpMessage.innerText = "Strict Mode 🔒: Typing stops on the first error. Go for 100% accuracy!";
+    } else {
+        elements.helpMessage.innerText = "Zen Mode 🧘: Errors will not stop your typing, and the text will not highlight errors.";
+    }
 }
 
 function handleInput(event) {
@@ -145,26 +169,23 @@ function handleInput(event) {
         startTest();
     }
     
-    // Check if the user is DELETING
     const isDeleting = event.inputType === 'deleteContentBackward';
     const oldLength = currentState.typedText.length;
 
-    // STRICT MODE CHECK (Uncorrected error means no forward typing)
-    if (currentState.hasError && !isDeleting) {
+    // STRICT MODE CHECK (Stop typing if error exists and mode is strict)
+    if (currentState.currentMode === 'strict' && currentState.hasError && !isDeleting) {
         if (value.length > oldLength) {
             elements.typingInput.value = currentState.typedText;
             return; 
         }
     }
     
-    // --- CORE TYPING LOGIC ---
-    // Check if the character typed just NOW was an error and UPDATE totalErrors
+    // ERROR TRACKING FOR METRICS (Works in both modes)
     if (!isDeleting && value.length > oldLength) {
-        const charIndex = oldLength; // New character is at old length index
+        const charIndex = oldLength; 
         const expectedChar = currentState.selectedText[charIndex];
         const typedChar = value[charIndex];
         
-        // If the newly typed character is WRONG, increment totalErrors
         if (typedChar && typedChar !== expectedChar) {
             currentState.totalErrors++;
         }
@@ -186,26 +207,25 @@ function handleInput(event) {
                 span.classList.add('current'); 
             }
         } else if (typedChar === expectedChar) {
-            span.classList.add('correct');
+            span.classList.add('correct'); 
         } else {
             span.classList.add('incorrect');
-            displayErrors++; // Only count visible errors for UI
+            displayErrors++; 
         }
     });
 
-    // Update state variables
     currentState.displayErrors = displayErrors;
     
-    // Determine if the current position is an error (for strict mode)
-    const currentTypedLength = currentState.typedText.length;
+    // Update hasError flag for Strict Mode check
     let currentPositionError = false;
+    const currentTypedLength = currentState.typedText.length;
     if (currentTypedLength > 0 && currentState.selectedText[currentTypedLength - 1] !== currentState.typedText[currentTypedLength - 1]) {
         currentPositionError = true;
     }
     currentState.hasError = currentPositionError; 
     
     autoScroll(); 
-    updateMetrics(); // Real-time update
+    updateMetrics(); 
 
     if (currentState.typedText.length === currentState.selectedText.length) {
         endTest(true); 
@@ -224,6 +244,9 @@ function startTest() {
     elements.paragraphSelectorContainer.classList.add('disabled');
     elements.levelTabs.forEach(tab => tab.classList.add('disabled'));
     elements.startTestBtn.disabled = true;
+
+    // FIX: Focus on Input
+    elements.typingInput.focus(); 
 
     let timeLeft = currentState.timeLimit;
     elements.timerSpan.innerText = timeLeft;
@@ -245,7 +268,7 @@ function endTest(completed, silent = false) {
     currentState.isRunning = false;
     clearInterval(currentState.timerInterval);
     
-    updateMetrics(); // Final update
+    updateMetrics(); 
 
     elements.paragraphSelectorContainer.classList.remove('disabled');
     elements.levelTabs.forEach(tab => tab.classList.remove('disabled'));
@@ -258,7 +281,7 @@ function endTest(completed, silent = false) {
     
     elements.finalWpm.innerText = wpm;
     elements.finalAccuracy.innerText = `${accuracy}%`;
-    elements.finalErrors.innerText = currentState.totalErrors; // Show total errors including corrected ones
+    elements.finalErrors.innerText = currentState.totalErrors; 
     
     elements.resultsModal.style.display = 'flex'; 
     elements.typingInput.blur();
@@ -270,7 +293,7 @@ function resetTest(fullReset = true) {
     currentState.isRunning = false;
     currentState.typedText = '';
     currentState.displayErrors = 0;
-    currentState.totalErrors = 0; // RESET totalErrors
+    currentState.totalErrors = 0;
     currentState.hasError = false; 
     elements.typingInput.value = '';
     
@@ -285,31 +308,34 @@ function resetTest(fullReset = true) {
     $all('#text-display span').forEach(span => {
         span.classList.remove('correct', 'incorrect', 'current');
     });
+    
+    // Apply Mode class based on current state
+    if (currentState.currentMode === 'zen') {
+        elements.textDisplay.classList.add('zen-mode');
+    } else {
+        elements.textDisplay.classList.remove('zen-mode');
+    }
 
     if (fullReset) {
-        // Full Reset: Go back to initial state (Select Paragraph screen)
         currentState.selectedText = '';
         elements.textDisplay.innerHTML = '<span class="placeholder">Select a Level and then choose a Title to begin!</span>';
         $all('.paragraph-title').forEach(el => el.classList.remove('active'));
         elements.startTestBtn.disabled = true; 
-        elements.helpMessage.innerText = "Select a Level and a Title to begin!";
-        elements.helpMessage.style.display = 'block';
-
+        
         loadParagraphTitles(currentState.currentLevel);
 
     } else {
-        // Quick Reset: Restart current paragraph
         if (currentState.selectedText) {
              const activeId = $all('.paragraph-title.active')[0]?.dataset.id;
              if (activeId) {
+                // Quickly re-select paragraph to re-render spans
                 selectParagraph(parseInt(activeId)); 
              }
              elements.startTestBtn.disabled = false;
-             elements.helpMessage.style.display = 'block';
-             elements.helpMessage.innerText = "Paragraph selected. Click 'Start Test' or begin typing to start!";
         }
     }
     
+    updateHelpMessage();
     elements.typingInput.focus(); 
 }
 
@@ -318,11 +344,7 @@ function updateMetrics() {
     
     if (typedChars === 0 && !currentState.isRunning) return;
 
-    // Corrected Characters (used for WPM)
     const correctedChars = typedChars - currentState.displayErrors;
-    
-    // Total Keystrokes attempted: Correctly typed characters + ALL errors (visible or corrected)
-    // This is the total attempt count, used as the denominator for accuracy.
     const totalKeystrokes = typedChars + currentState.totalErrors; 
 
     let timeElapsed;
@@ -340,11 +362,8 @@ function updateMetrics() {
          }
     }
 
-    // WPM: Based on CORRECTED characters
     const wpm = timeElapsed > 0 ? Math.round((correctedChars / 5) / timeElapsed) : 0;
     
-    // Accuracy: (Typed Characters - Display Errors) / Total Keystrokes (Typed + Total Errors)
-    // This is the calculation for persistent error counting.
     const netAccuracy = (totalKeystrokes === 0) 
         ? 100 
         : Math.max(0, Math.round(((typedChars - currentState.displayErrors) / totalKeystrokes) * 100));
@@ -377,6 +396,24 @@ function handleLevelChange(newLevel) {
     resetTest(true); 
 }
 
+// NEW: Handle Mode Change
+function handleModeChange(mode) {
+    if (currentState.isRunning || currentState.currentMode === mode) return; 
+
+    currentState.currentMode = mode;
+    
+    elements.modeOptions.forEach(btn => btn.classList.remove('active'));
+    $(`[data-mode="${mode}"]`).classList.add('active');
+    
+    // Reset test to apply mode and update help message/text styling
+    if (currentState.selectedText) {
+        resetTest(false);
+    } else {
+        resetTest(true);
+    }
+}
+
+
 function handleTimeChange(e) {
     currentState.timeLimit = parseInt(e.target.value);
     resetTest(true);
@@ -389,7 +426,10 @@ elements.startTestBtn.addEventListener('click', startTest);
 elements.restartBtn.addEventListener('click', () => resetTest(false)); 
 elements.modalRestartBtn.addEventListener('click', () => resetTest(true));
 
-// FIX: Cross button triggers a full reset to prevent continuation.
+// NEW LISTENERS for Mode Selector
+elements.strictModeBtn.addEventListener('click', () => handleModeChange('strict'));
+elements.zenModeBtn.addEventListener('click', () => handleModeChange('zen'));
+
 elements.modalCloseBtn.addEventListener('click', () => {
     elements.resultsModal.style.display = 'none';
     resetTest(true); 
