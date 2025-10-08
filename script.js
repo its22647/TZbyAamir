@@ -6,7 +6,6 @@ const $all = selector => document.querySelectorAll(selector);
 
 const elements = {
     body: $('body'),
-    // Updated: Replaced paragraphList with paragraphSelector
     paragraphSelector: $('#paragraph-selector'),
     textDisplay: $('#text-display'),
     typingInput: $('#typing-input'),
@@ -73,7 +72,7 @@ function autoScroll() {
     }
 }
 
-// Update to load titles into the SELECT dropdown
+// Function to load titles into the SELECT dropdown
 function loadParagraphTitles(level) {
     currentState.currentLevel = level;
     elements.paragraphSelector.innerHTML = '';
@@ -101,11 +100,9 @@ function loadParagraphTitles(level) {
 
 // Function to select paragraph by ID from the dropdown value
 function selectParagraph(id) {
-    // Convert ID to integer as it comes as string from select value
     const paragraphId = parseInt(id);
 
     if (currentState.isRunning || !paragraphId) {
-        // If test is running or no valid ID is selected, just return
         return; 
     }
     
@@ -141,7 +138,6 @@ function selectParagraph(id) {
         elements.textDisplay.classList.remove('zen-mode');
     }
 
-    // Ensure the dropdown shows the active selection
     elements.paragraphSelector.value = paragraphId;
 
     elements.timerSpan.innerText = currentState.timeLimit;
@@ -180,7 +176,7 @@ function handleInput(event) {
     const isDeleting = event.inputType === 'deleteContentBackward';
     const oldLength = currentState.typedText.length;
 
-    // STRICT MODE CHECK (Stop typing if error exists and mode is strict)
+    // STRICT MODE CHECK
     if (currentState.currentMode === 'strict' && currentState.hasError && !isDeleting) {
         if (value.length > oldLength) {
             elements.typingInput.value = currentState.typedText;
@@ -188,7 +184,7 @@ function handleInput(event) {
         }
     }
     
-    // ERROR TRACKING FOR METRICS (Works in both modes)
+    // ERROR TRACKING FOR METRICS 
     if (!isDeleting && value.length > oldLength) {
         const charIndex = oldLength; 
         const expectedChar = currentState.selectedText[charIndex];
@@ -335,7 +331,6 @@ function resetTest(fullReset = true) {
         if (currentState.selectedText) {
              const activeId = elements.paragraphSelector.value;
              if (activeId) {
-                // Quickly re-select paragraph to re-render spans
                 selectParagraph(activeId); 
              }
              elements.startTestBtn.disabled = false;
@@ -352,7 +347,6 @@ function updateMetrics() {
     if (typedChars === 0 && !currentState.isRunning) return;
 
     const correctedChars = typedChars - currentState.displayErrors;
-    // Total keystrokes is all typed characters (good/bad) + all historical bad characters
     const totalKeystrokes = typedChars + currentState.totalErrors; 
 
     let timeElapsed;
@@ -372,7 +366,6 @@ function updateMetrics() {
 
     const wpm = timeElapsed > 0 ? Math.round((correctedChars / 5) / timeElapsed) : 0;
     
-    // Accuracy: (Correct Characters typed) / (Total Keystrokes)
     const netAccuracy = (totalKeystrokes === 0) 
         ? 100 
         : Math.max(0, Math.round(((typedChars - currentState.displayErrors) / totalKeystrokes) * 100));
@@ -399,7 +392,6 @@ function handleLevelChange(newLevel) {
 
     currentState.currentLevel = newLevel;
     
-    // Reset to initial state after level change
     resetTest(true); 
 }
 
@@ -411,7 +403,6 @@ function handleModeChange(mode) {
     elements.modeOptions.forEach(btn => btn.classList.remove('active'));
     $(`[data-mode="${mode}"]`).classList.add('active');
     
-    // Reset test to apply mode and update help message/text styling
     if (currentState.selectedText) {
         resetTest(false);
     } else {
@@ -432,10 +423,10 @@ elements.startTestBtn.addEventListener('click', startTest);
 elements.restartBtn.addEventListener('click', () => resetTest(false)); 
 elements.modalRestartBtn.addEventListener('click', () => resetTest(true));
 
-// NEW LISTENER for Paragraph Dropdown change
+// Listener for Paragraph Dropdown change
 elements.paragraphSelector.addEventListener('change', (e) => selectParagraph(e.target.value));
 
-// LISTENERS for Mode Selector
+// Listeners for Mode Selector
 elements.strictModeBtn.addEventListener('click', () => handleModeChange('strict'));
 elements.zenModeBtn.addEventListener('click', () => handleModeChange('zen'));
 

@@ -44,38 +44,33 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
     margin: 0;
     line-height: 1.6;
 }
 
-/* --- Theme Classes --- */
+/* --- THEME SPECIFIC STYLES --- */
+
+/* Theme Light (Default) */
 .theme-light {
     background-color: var(--bg-light);
     color: var(--text-light);
 }
-.theme-dark {
-    background-color: var(--bg-dark);
-    color: var(--text-dark);
-}
-.theme-bw {
-    background-color: #000;
-    color: #fff;
-}
-
-
-/* --- THEME SPECIFIC STYLES --- */
 .theme-light .main-container {
     background-color: var(--card-bg-light);
     box-shadow: var(--shadow-soft);
 }
 .theme-light .sidebar {
-    background-color: #f0f3f5; /* Subtle sidebar background */
+    background-color: #f0f3f5; 
 }
 .theme-light .mode-selector-container {
     background-color: var(--mode-bg-light);
 }
 
+/* Theme Dark */
+.theme-dark {
+    background-color: var(--bg-dark);
+    color: var(--text-dark);
+}
 .theme-dark .main-container {
     background-color: var(--card-bg-dark);
     box-shadow: var(--shadow-deep);
@@ -85,9 +80,14 @@ body {
     border-right-color: #333;
 }
 .theme-dark .custom-select, .theme-dark .typing-input {
+    /* DROPDOWN COLOR FIX */
+    background-color: #2a2a2a; 
+    color: var(--text-dark) !important; 
+    border-color: #333;
+}
+.theme-dark .custom-select option {
     background-color: #2a2a2a;
     color: var(--text-dark);
-    border-color: #333;
 }
 .theme-dark .mode-selector-container {
     background-color: var(--mode-bg-dark);
@@ -97,12 +97,27 @@ body {
     box-shadow: 0 2px 10px rgba(63, 114, 175, 0.7);
 }
 
-/* Black & White Adjustments */
+
+/* Theme Black & White */
+.theme-bw {
+    background-color: #000;
+    color: #fff !important; /* TEXT COLOR FIX */
+}
 .theme-bw .main-container, .theme-bw .sidebar, .theme-bw .level-tab, .theme-bw .result-box, .theme-bw .mode-selector-container {
     background-color: #111;
     color: #fff;
     border: 1px solid #fff;
     box-shadow: none;
+}
+.theme-bw .custom-select, .theme-bw .typing-input {
+    /* DROPDOWN COLOR FIX */
+    background-color: #111;
+    color: #fff !important; 
+    border-color: #fff;
+}
+.theme-bw .custom-select option {
+    background-color: #111;
+    color: #fff;
 }
 .theme-bw .current {
     background-color: #fff;
@@ -110,7 +125,7 @@ body {
 }
 
 
-/* --- Layout and Header --- */
+/* --- Layout and Header (Scroll Fix Implemented) --- */
 header {
     width: 100%;
     padding: 20px 0;
@@ -127,13 +142,20 @@ h1 {
     font-weight: 700;
 }
 
+/* STARTUP SCROLL FIX: Use a minimum height on the body and center the container */
+body {
+    min-height: 100vh; /* Ensure body takes full viewport height */
+    justify-content: center; /* Vertically center content */
+    padding: 40px 0; /* Add padding for space above/below */
+}
+
 .main-container {
     display: flex;
     width: 95%;
     max-width: 1300px;
-    margin-top: 40px; 
     border-radius: var(--radius-large);
     overflow: hidden;
+    flex-shrink: 0;
 }
 
 /* --- Sidebar (Settings) --- */
@@ -163,12 +185,26 @@ h1 {
     appearance: none; 
     cursor: pointer;
     box-shadow: var(--shadow-inset);
+    /* Set color property explicitly for universal theme */
+    color: var(--text-light) !important; 
+    
+    /* Custom Arrow */
     background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path fill='%233f72af' d='M8 12l-6-6h12z'/></svg>") no-repeat right 10px center;
     background-size: 12px;
 }
 .theme-dark .custom-select {
+    color: var(--text-dark) !important;
     background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path fill='%23e0e0e0' d='M8 12l-6-6h12z'/></svg>") no-repeat right 10px center;
     background-size: 12px;
+}
+.theme-bw .custom-select {
+    color: #fff !important;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'><path fill='%23fff' d='M8 12l-6-6h12z'/></svg>") no-repeat right 10px center;
+    background-size: 12px;
+}
+/* Ensure options text color is correct in dropdown */
+.custom-select option {
+    color: var(--text-light); /* Default for light mode */
 }
 
 
@@ -180,7 +216,7 @@ h1 {
 }
 
 
-/* --- Level Tabs Container (Aesthetic Alignment) --- */
+/* --- Level Tabs Container --- */
 .level-tabs-container {
     display: flex;
     justify-content: space-between;
@@ -214,7 +250,7 @@ h1 {
 }
 
 
-/* --- MODE SELECTOR STYLING (Segmented Control) --- */
+/* --- MODE SELECTOR STYLING --- */
 .mode-selector-container {
     display: inline-flex;
     background-color: var(--mode-bg-light);
@@ -251,7 +287,7 @@ h1 {
 }
 
 
-/* --- Paragraph Selector (Now a Dropdown) --- */
+/* --- Paragraph Selector (Dropdown) --- */
 .paragraph-selector-container {
     margin-bottom: 30px;
 }
@@ -326,6 +362,8 @@ h1 {
 .text-display span {
     white-space: pre-wrap; 
     word-break: break-word; 
+    /* TEXT COLOR FIX: Ensure placeholder and untyped text respects theme */
+    color: inherit; 
 }
 .current {
     background-color: var(--primary-color); 
@@ -357,6 +395,7 @@ h1 {
     border-bottom: none;
     padding: 0;
 }
+/* Ensure Zen Mode text color respects dark theme */
 .theme-dark .text-display.zen-mode .incorrect, 
 .theme-dark .text-display.zen-mode .correct {
     color: var(--text-dark);
