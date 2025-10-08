@@ -3,34 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TypeZone by Aamir</title>
+    <title>TypeZone Pro by Aamir</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="theme-light"> 
 
     <header>
-        <h1>TypeZone by <span class="highlight">Aamir</span></h1>
+        <h1>TypeZone <span class="highlight">Pro</span> by Aamir</h1>
     </header>
 
     <div class="main-container">
+        
         <aside class="sidebar">
-            <h2>📚 Paragraphs</h2>
-            <div id="paragraph-selector-container">
-                <div id="paragraph-list" class="paragraph-list">
-                    </div>
-            </div>
-            <hr>
             <h2>⚙️ Settings</h2>
-            
-            <div class="settings-group">
-                <h3>Level Mode:</h3>
-                <select id="level-selector" class="custom-select">
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
-                    <option value="professional">Professional</option>
-                </select>
-            </div>
             
             <div class="settings-group">
                 <h3>Theme Mode:</h3>
@@ -54,24 +39,36 @@
         
         <main class="typing-area">
             
+            <div class="level-tabs">
+                <div class="level-tab active" data-level="easy" id="easy-tab">Easy</div>
+                <div class="level-tab" data-level="medium" id="medium-tab">Medium</div>
+                <div class="level-tab" data-level="hard" id="hard-tab">Hard</div>
+                <div class="level-tab" data-level="professional" id="professional-tab">Professional</div>
+            </div>
+            
+            <div id="paragraph-selector-container" class="paragraph-selector-container">
+                <div id="paragraph-list" class="paragraph-list">
+                    </div>
+            </div>
+            
             <div class="metrics-bar">
                 <div class="metric"><span id="timer">60</span>s</div>
                 <div class="metric">WPM: <span id="wpm">0</span></div>
                 <div class="metric">Accuracy: <span id="accuracy">100</span>%</div>
                 <div class="metric">
-                    <button id="start-test-btn" class="restart-btn" style="background-color: var(--accent-color); margin-right: 10px;">Start Test</button>
+                    <button id="start-test-btn" class="action-btn start-btn" disabled>Start Test</button>
                 </div>
-                <div class="metric"><button id="restart-btn" class="restart-btn">Restart</button></div>
+                <div class="metric"><button id="restart-btn" class="action-btn restart-btn">Restart</button></div>
             </div>
 
             <div id="text-display" class="text-display">
-                <span class="placeholder">Select a paragraph from the left to begin!</span>
+                <span class="placeholder">Select a Level and then choose a Title to begin!</span>
             </div>
 
             <input type="text" id="typing-input" class="typing-input" autofocus> 
 
             <div id="help-message" class="help-message">
-                Select a paragraph from the left to begin!
+                Select a paragraph from the list above to activate the test.
             </div>
         </main>
     </div>
@@ -93,7 +90,7 @@
                     <p id="final-errors">0</p>
                 </div>
             </div>
-            <button id="modal-restart-btn" class="restart-btn">Start New Test</button>
+            <button id="modal-restart-btn" class="action-btn restart-btn">Start New Test</button>
         </div>
     </div>
     <script src="content.js"></script>
