@@ -2,7 +2,7 @@ const paragraphData = [
     // --- EASY LEVEL: Simple writing, low capitalization, no complex punctuation ---
     { 
         id: 1, 
-        title: "The Simple  of a Sunny Day", 
+        title: "The Simple Joy of a Sunny Day", 
         level: "easy", 
         text: "i like to sit outside when the weather is nice. the sun feels warm on my face and i watch the small birds fly by. a little dog runs past the park and its tail wags quickly. everything is calm and easy in the bright afternoon light. i can hear the quiet sound of leaves moving in the gentle wind. it is a good time to just relax and clear my mind. everyone should take a few minutes to enjoy these simple and basic pleasures. these moments are often the best part of any regular day." 
     },
