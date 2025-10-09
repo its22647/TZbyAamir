@@ -12,7 +12,7 @@
 
 Experience the speed and design of TypeZone directly:
 
-[https://tz-by-aamir.vercel.app/](https://tz-by-aamir.vercel.app/)
+https://aamirtypezone.vercel.app/
 
 ---
 
